@@ -72,6 +72,13 @@ class Client:
         return state_reported["state"]["reported"]
 
     async def observe_status(self):
+        def decrypt_status(response):
+            payload_encrypted = response.payload.decode()
+            payload = self._encryption_context.decrypt(payload_encrypted)
+            logger.debug("observation status: %s", payload)
+            status = json.loads(payload)
+            return status["state"]["reported"]
+
         logger.debug("observing status")
         request = Message(
             code=GET,
@@ -80,12 +87,10 @@ class Client:
         )
         request.opt.observe = 0
         requester = self._client_context.request(request)
+        response = await requester.response
+        yield decrypt_status(response)
         async for response in requester.observation:
-            payload_encrypted = response.payload.decode()
-            payload = self._encryption_context.decrypt(payload_encrypted)
-            logger.debug("observation status: %s", payload)
-            status = json.loads(payload)
-            yield status["state"]["reported"]
+            yield decrypt_status(response)
 
     async def set_control_value(self, key, value, retry_count=5, resync=True) -> None:
         return await self.set_control_values(

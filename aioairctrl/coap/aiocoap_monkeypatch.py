@@ -1,7 +1,20 @@
 import asyncio
+import functools
 
 import aiocoap
 from aiocoap import error
+from aiocoap.numbers.constants import EXCHANGE_LIFETIME
+
+
+def _deduplicate_message(self, message):
+    key = (message.remote, message.mid)
+    self.log.debug("MP: New unique message received")
+    self.loop.call_later(EXCHANGE_LIFETIME, functools.partial(self._recent_messages.pop, key))
+    self._recent_messages[key] = None
+    return False
+
+
+aiocoap.messagemanager.MessageManager._deduplicate_message = _deduplicate_message
 
 
 def __del__(self):

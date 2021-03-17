@@ -1,8 +1,7 @@
 import asyncio
 import functools
 
-import aiocoap
-from aiocoap import error
+from aiocoap.messagemanager import MessageManager
 from aiocoap.numbers.constants import EXCHANGE_LIFETIME
 
 
@@ -14,7 +13,10 @@ def _deduplicate_message(self, message):
     return False
 
 
-aiocoap.messagemanager.MessageManager._deduplicate_message = _deduplicate_message
+MessageManager._deduplicate_message = _deduplicate_message
+
+from aiocoap.protocol import ClientObservation
+from aiocoap.error import ObservationCancelled, NotObservable, LibraryShutdown
 
 
 def __del__(self):
@@ -23,14 +25,14 @@ def __del__(self):
             # Fetch the result so any errors show up at least in the
             # finalizer output
             self._future.result()
-        except (error.ObservationCancelled, error.NotObservable):
+        except (ObservationCancelled, NotObservable):
             # This is the case at the end of an observation cancelled
             # by the server.
             pass
-        except error.LibraryShutdown:
+        except LibraryShutdown:
             pass
         except asyncio.CancelledError:
             pass
 
 
-aiocoap.protocol.ClientObservation._Iterator.__del__ = __del__
+ClientObservation._Iterator.__del__ = __del__

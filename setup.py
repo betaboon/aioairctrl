@@ -2,6 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="aioairctrl",
+    version="0.2.1",
     description="library for controlling philips air purifiers (using encrypted CoAP)",
     author="betaboon",
     url="https://github.com/betaboon/aioairctrl",

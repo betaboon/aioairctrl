@@ -2,6 +2,7 @@ import argparse
 import asyncio
 import json
 import logging
+import sys
 
 from aioairctrl import CoAPClient
 
@@ -106,6 +107,7 @@ async def async_main() -> None:
                     print(json.dumps(status))
                 else:
                     print(status)
+                    sys.stdout.flush()
         elif args.command == "set":
             data = {}
             for e in args.values:

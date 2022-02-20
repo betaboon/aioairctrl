@@ -63,7 +63,7 @@ class Client:
             mtype=NON,
             uri=f"coap://{self.host}:{self.port}{self.STATUS_PATH}",
         )
-        request.opt.observe = 0
+        #request.opt.observe = 0 # no observe here
         response = await self._client_context.request(request).response
         payload_encrypted = response.payload.decode()
         payload = self._encryption_context.decrypt(payload_encrypted)
@@ -87,6 +87,12 @@ class Client:
         )
         request.opt.observe = 0
         requester = self._client_context.request(request)
+        ## https://github.com/chrysn/aiocoap/blob/1f03d4ceb969b2b443c288c312d44c3b7c3e2031/aiocoap/cli/client.py#L296
+        #observation_is_over = asyncio.get_event_loop().create_future()
+        #requester.observation.register_errback(observation_is_over.set_result)
+        #requester.observation.register_callback(lambda data, options=options: incoming_observation(options, data))
+        # exit_reason = await observation_is_over
+        # print("Observation is over: %r"%(exit_reason,), file=sys.stderr)
         response = await requester.response
         yield decrypt_status(response)
         async for response in requester.observation:

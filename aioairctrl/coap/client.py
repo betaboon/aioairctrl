@@ -93,10 +93,15 @@ class Client:
         #requester.observation.register_callback(lambda data, options=options: incoming_observation(options, data))
         # exit_reason = await observation_is_over
         # print("Observation is over: %r"%(exit_reason,), file=sys.stderr)
-        response = await requester.response
-        yield decrypt_status(response)
-        async for response in requester.observation:
+        try:
+            response = await asyncio.wait_for(requester.response, timeout=100)
             yield decrypt_status(response)
+            timeout = response.opt.max_age #
+            timeout += 5 # add some slack
+            async for response in asyncio.wait_for(requester.observation, timeout=timeout):
+                yield decrypt_status(response)
+         except asyncio.TimeoutError:
+            logger.warning('timeout!')
 
     async def set_control_value(self, key, value, retry_count=5, resync=True) -> None:
         return await self.set_control_values(

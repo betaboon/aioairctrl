@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+import asyncio
 
 from aioairctrl.coap import aiocoap_monkeypatch  # noqa: F401
 from aiocoap import (

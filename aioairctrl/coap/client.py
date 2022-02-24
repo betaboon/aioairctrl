@@ -100,8 +100,9 @@ class Client:
             timeout += 5 # add some slack
             async for response in asyncio.wait_for(requester.observation, timeout=timeout):
                 yield decrypt_status(response)
-         except asyncio.TimeoutError:
+        except asyncio.TimeoutError as e:
             logger.warning('timeout!')
+
 
     async def set_control_value(self, key, value, retry_count=5, resync=True) -> None:
         return await self.set_control_values(

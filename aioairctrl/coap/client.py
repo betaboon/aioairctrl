@@ -80,7 +80,7 @@ class Client:
             status = json.loads(payload)
             return status["state"]["reported"]
 
-        logger.debug("observing status")
+        logger.info("observing status")
         request = Message(
             code=GET,
             mtype=NON,
@@ -95,7 +95,9 @@ class Client:
         # exit_reason = await observation_is_over
         # print("Observation is over: %r"%(exit_reason,), file=sys.stderr)
         try:
+            logger.info("wait with timeout status")
             response = await asyncio.wait_for(requester.response, timeout=100)
+            logger.info("got response")
             yield decrypt_status(response)
             timeout = response.opt.max_age #
             timeout += 5 # add some slack

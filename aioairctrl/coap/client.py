@@ -72,7 +72,10 @@ class Client:
         state_reported = json.loads(payload)
         return state_reported["state"]["reported"]
 
-    async def observe_status(self):
+    async def observe_status(self, inital_timeout=180):
+        """ observes status
+            wont return untill some exception is triggert or Timeout is hit
+        """
         def decrypt_status(response):
             payload_encrypted = response.payload.decode()
             payload = self._encryption_context.decrypt(payload_encrypted)
@@ -95,10 +98,10 @@ class Client:
         # exit_reason = await observation_is_over
         # print("Observation is over: %r"%(exit_reason,), file=sys.stderr)
         try:
-            response = await asyncio.wait_for(requester.response, timeout=100)
+            response = await asyncio.wait_for(requester.response, timeout=inital_timeout)
             yield decrypt_status(response)
             timeout = response.opt.max_age #
-            timeout += 5 # add some slack to timeout
+            timeout += 30 # add some slack to timeout
             iterator =requester.observation.__aiter__()
             while True:
                 response = await asyncio.wait_for(iterator.__anext__(), timeout=timeout)

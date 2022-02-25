@@ -83,7 +83,7 @@ class Client:
         logger.info("observing status")
         request = Message(
             code=GET,
-            mtype=NON,
+            #mtype=NON, Im not sure this should be set here
             uri=f"coap://{self.host}:{self.port}{self.STATUS_PATH}",
         )
         request.opt.observe = 0
@@ -101,7 +101,8 @@ class Client:
             yield decrypt_status(response)
             timeout = response.opt.max_age #
             timeout += 5 # add some slack
-            async for response in asyncio.wait_for(requester.observation, timeout=timeout):
+            iterator = requester.observation.__aiter__()
+            async for response in asyncio.wait_for(iterator.__anext__(), timeout=timeout):
                 yield decrypt_status(response)
         except asyncio.TimeoutError as e:
             logger.warning('timeout!')

@@ -83,7 +83,7 @@ class Client:
         logger.info("observing status")
         request = Message(
             code=GET,
-            #mtype=NON, Im not sure this should be set here
+            mtype=NON, 
             uri=f"coap://{self.host}:{self.port}{self.STATUS_PATH}",
         )
         request.opt.observe = 0
@@ -95,14 +95,13 @@ class Client:
         # exit_reason = await observation_is_over
         # print("Observation is over: %r"%(exit_reason,), file=sys.stderr)
         try:
-            logger.info("wait with timeout status")
             response = await asyncio.wait_for(requester.response, timeout=100)
-            logger.info("got response")
             yield decrypt_status(response)
             timeout = response.opt.max_age #
-            timeout += 5 # add some slack
-            iterator = requester.observation.__aiter__()
-            async for response in asyncio.wait_for(iterator.__anext__(), timeout=timeout):
+            timeout += 5 # add some slack to timeout
+            iterator =requester.observation.__aiter__()
+            while True:
+                response = await asyncio.wait_for(iterator.__anext__(), timeout=timeout)
                 yield decrypt_status(response)
         except asyncio.TimeoutError as e:
             logger.warning('timeout!')
